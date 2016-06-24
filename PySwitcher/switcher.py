@@ -19,6 +19,7 @@ def load_langs(langs, path=os.getcwd()):  # загружаем языки из �
     try:
         files = os.listdir(path)
     except FileNotFoundError:
+        os.mkdir(path)
         logging.critical('Language dictionaries doesn\'t found. Please, place them in /lang directory')
         messages.append('Language dictionaries doesn\'t found. Please, place them in /lang directory')
         return layouts
