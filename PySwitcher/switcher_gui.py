@@ -7,7 +7,6 @@ running = False
 
 root = Tk()
 root.title('PySwitcher Alpha')
-root.iconify()  # Minimize to system tray
 
 """Textbox for logging output"""
 txt = Frame(root)
