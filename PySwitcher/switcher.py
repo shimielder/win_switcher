@@ -5,7 +5,6 @@ import logging
 from initialization import get_options
 
 # TODO: полный рефакторинг
-# TODO: проверять наличие файлов языков
 # TODO: вынести отдельным модулем загрузку языков
 
 logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
@@ -48,58 +47,46 @@ def cross_chars(layouts):  # определяем пересекающиеся �
     return result
 
 
-def lang_define(phrase, layouts):
-    if layouts:
-        for char in phrase:
-            if char not in cross_list:
-                if char in layouts[0]:
-                    lang_setup = (0, 1)
-                    break
-                elif char in layouts[1]:
-                    lang_setup = (1, 0)
-                    break
-            else:
-                lang_setup = None  # В случае, если слово целиком из пересекающихся символов
-    else:
-        lang_setup = None
+def lang_define(char, layouts):
+    lang_setup = ()
+    if char in layouts[0]:
+        lang_setup = (0, 1)
+    elif char in layouts[1]:
+        lang_setup = (1, 0)
     return lang_setup
 
 
 def switcher(phrase):
-    temp = []
-    result = phrase.split()
-
-    def sub_switch(word):
-        lang_setup = lang_define(word, layouts)
-        temp = ''
-        if lang_setup:
-            for position, char in list(enumerate(word)):
-                if char == '\\':
-                    temp += '\\'
-                elif char == ' ':
-                    temp += ' '
-                else:
-                    try:
-                        i = layouts[lang_setup[0]].index(char)
-                        temp += layouts[lang_setup[1]][i]
-                    except ValueError:
-                        logging.error('Symbol not founded. Searching in other language')
-                        try:
-                            lang_setup = lang_define(word, layouts)
-                            i = layouts[lang_setup[0]].index(char)
-                            temp += layouts[lang_setup[1]][i]
-                        except ValueError:
-                            logging.error('Symbol {} not find'.format(char))
-            return temp
+#    cross_list = cross_chars(layouts)
+    escape = (' ', '\\')
+    lang_setup = ()
+    phrase_length = len(phrase)
+    result = ''
+    temp = ''
+    for position, char in enumerate(list(phrase)):
+        if char in cross_list:
+            if len(lang_setup) > 0:
+                i = layouts[lang_setup[0]].index(char)
+                result += layouts[lang_setup[1]][i]
+            else:
+                temp += char
+            if len(temp) == phrase_length:
+                result = temp
+            elif position == phrase_length - 1:
+                result += temp
         else:
-            return word
-
-    for word in result:
-        temp.append(sub_switch(word))
-    result = ' '.join(temp)
-
+            temp += char
+            lang_setup = lang_define(char, layouts)
+            for char in list(temp):
+                if char in escape:
+                    result += char
+                elif len(lang_setup) > 0:
+                    i = layouts[lang_setup[0]].index(char)
+                    result += layouts[lang_setup[1]][i]
+                else:
+                    result += char
+            temp = ''
     return result
-
 
 messages = []
 options = get_options()
@@ -144,3 +131,4 @@ if __name__ == '__main__':
     data = copy()
     print(data)
     print(paste(data))
+
