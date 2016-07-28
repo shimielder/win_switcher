@@ -5,6 +5,7 @@ from initialization import save_to
 
 running = False
 
+# Main frame window
 root = Tk()
 root.title('PySwitcher Alpha')
 
@@ -23,7 +24,7 @@ class TextHandler(
     def __init__(self, text):
         # run the regular Handler __init__
         logging.Handler.__init__(self)
-        self.formatter = logging.Formatter('[%(asctime)s][%(levelname)s]: %(message)s')
+        self.formatter = logging.Formatter('[%(asctime)s][%(levelname)s]:    %(message)s')
         # Store a reference to the Text it will log to
         self.text = text
 
@@ -41,11 +42,24 @@ class TextHandler(
         # This is necessary because we can't modify the Text from other threads
         self.text.after(0, append)
 
+    def set_loglevel(self, loglevel):
+        if not loglevel:
+            logging.error('Improper log_level. Check settings. Log_level set to "DEBUG"')
+            numeric_level = 0
+            return self.setLevel(numeric_level)
+        numeric_level = getattr(logging, loglevel.upper(), None)
+        if not isinstance(numeric_level, int):
+            logging.error('Improper log_level. Check settings. Log_level set to "DEBUG"')
+            numeric_level = 0
+        logging.debug('Numeric log_level: {}'.format(numeric_level))
+        return self.setLevel(numeric_level)
+
 
 # Create textLogger
 text_handler = TextHandler(textbox)
 # Add the handler to logger
 logger = logging.getLogger()
+text_handler.set_loglevel(options['log_level'])
 logger.addHandler(text_handler)
 
 
@@ -53,27 +67,41 @@ def debugpanelshow():
     txt.pack(side='bottom')
     textbox.pack(side='left')
     scrollbar.pack(side='right', fill='y')
-    var_label.grid(row=7, column=0, sticky=W)
-    var_entry.grid(row=8, column=0, sticky=W)
+    log_label.grid(row=7, column=0, sticky=W)
+    log_entry.grid(row=8, column=0, sticky=W)
+    var_label.grid(row=9, column=0, sticky=W)
+    var_entry.grid(row=10, column=0, sticky=W)
     btn_var.grid(row=3, column=1, sticky=E)
 
 
 def debugpanelhide():
     txt.pack_forget()
+    log_label.grid_forget()
+    log_entry.grid_forget()
     var_label.grid_forget()
     var_entry.grid_forget()
     btn_var.grid_forget()
 
 
 def inspectvar():
-    vars_to_inspect = var_entry.get().replace(' ', '').split(',')
-    for var in vars_to_inspect:
+    var_to_inspect = var_entry.get()
+    logging.debug('*' * 15 + 'GLOBAL VARIABLES' + '*' * 15)
+    vars = globals()
+    if var_to_inspect:
         try:
-            mvar = globals()[var]
+            logging.DEBUG('Variable {}: {}'.format(var_to_inspect, vars[var_to_inspect]))
         except KeyError:
-            logging.error('No such variable', exc_info=True)
-        else:
-            logging.debug('{} = {}'.format(var, mvar))
+            logging.DEBUG('No such variable')
+            logging.DEBUG(
+                'Clean "Variable to inspect" field and press "View variable". It will show ALL available variables')
+    else:
+        for var in vars:
+            logging.debug('{}:\t{}'.format(var, vars[var]))
+    logging.debug('*' * 15 + 'LOCAL VARIABLES' + '*' * 15)
+    vars = locals()
+    for var in vars:
+        if var != 'vars' and var != 'var':
+            logging.debug('{}:\t{}'.format(var, vars[var]))
 
 
 def starter():
@@ -100,11 +128,18 @@ def reload_opt():
     options['encoding'] = enc_entry.get()
     options['switch_combination'] = comb_entry.get()
     options['hotkey'] = hotkey_entry.get()
+    if debug.get():
+        new_log_level = log_entry.get()
+        if new_log_level: options['log_level'] = new_log_level
+    text_handler.set_loglevel(options['log_level'])
     save_to(options)
     if debug.get():
         debugpanelshow()
+        log_entry.delete(0, END)
+        log_entry.insert(0, options['log_level'])
     elif not debug.get():
         debugpanelhide()
+
 
 label_size = entry_size = 40
 
@@ -114,9 +149,9 @@ left_frame = Frame(main_frame, bd=2)
 left_frame.grid(row=0, column=0, rowspan=6)
 
 enc_label = Label(left_frame,
-                    text='System encoding (ex. cp1251)',
-                    width=label_size,
-                    anchor=W)
+                  text='System encoding (ex. cp1251)',
+                  width=label_size,
+                  anchor=W)
 enc_entry = Entry(left_frame, width=entry_size)
 enc_label.grid(row=0, column=0, sticky=W)
 enc_entry.grid(row=1, column=0, sticky=W)
@@ -139,6 +174,12 @@ hotkey_entry = Entry(left_frame, width=entry_size)
 hotkey_label.grid(row=4, column=0, sticky=W)
 hotkey_entry.grid(row=5, column=0, sticky=W)
 hotkey_entry.insert(0, options['hotkey'])
+
+log_label = Label(left_frame,
+                  text='Logging level',
+                  width=label_size,
+                  anchor=W)
+log_entry = Entry(left_frame, width=entry_size)
 
 var_label = Label(left_frame,
                   text='Variable to inspect',

@@ -1,11 +1,11 @@
 import logging
 import keyboard
 from time import sleep
+from initialization import layout_switch, set_loglevel
+from switcher import copy, paste, options, messages, clean_clipboard
 
-from switcher import copy, paste, options, messages
-
-logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                    level=logging.DEBUG)
+logger = logging.getLogger()
+set_loglevel(options['log_level'])
 running = False
 
 
@@ -21,20 +21,25 @@ def main():
     result = paste(data)
     sleep(0.05)
     logging.debug('Converted string:\t{}'.format(result))
-    if comb: keyboard.send(comb)
-    keyboard.send('ctrl+v')
+    if comb: layout_switch(comb)
     sleep(0.25)
+    keyboard.send('ctrl+v')
+    sleep(0.05)
+    clean_clipboard()
     return
 
 
 def start_app():
     logging.debug(
-        '\nVariables at start:\nEncoding: {}\nHotkey: {}\nSwitch combination: {}\n'.format(options['encoding'],
-                                                                                           options['hotkey'], options[
-                                                                                               'switch_combination']))
+        '\nVariables at start:\nEncoding: {}\nHotkey: {}\nSwitch combination: {}\nLogging level: {}'.format(
+            options['encoding'],
+            options['hotkey'],
+            options['switch_combination'],
+            options['log_level']))
     global running
     logging.info('App is running...')
     keyboard.add_hotkey(options['hotkey'], main)
+    logging.debug('Existing hotkeys: {}'.format(keyboard.hotkeys))
     running = True
 
 

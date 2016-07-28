@@ -2,13 +2,10 @@ import win32clipboard
 import os
 import logging
 
-from initialization import get_options
+from initialization import get_options, set_loglevel
 
 # TODO: полный рефакторинг
 # TODO: вынести отдельным модулем загрузку языков
-
-logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
-                    level=logging.DEBUG)
 
 
 def load_langs(langs, path=os.getcwd()):  # загружаем языки из файла
@@ -57,7 +54,7 @@ def lang_define(char, layouts):
 
 
 def switcher(phrase):
-#    cross_list = cross_chars(layouts)
+    #    cross_list = cross_chars(layouts)
     escape = (' ', '\\')
     lang_setup = ()
     phrase_length = len(phrase)
@@ -88,14 +85,15 @@ def switcher(phrase):
             temp = ''
     return result
 
+
+logger = logging.getLogger()
 messages = []
 options = get_options()
 layouts = load_langs(options['langs'])
 if layouts:
     cross_list = cross_chars(layouts)
-warning_level = options['warning_level']
 encoding = options['encoding']
-
+set_loglevel(options['log_level'])
 
 def copy():
     data = ''
@@ -111,7 +109,7 @@ def copy():
                 data = data.decode(encoding)
             except UnicodeDecodeError:
                 logging.error('Problem with encoding: {}.\tPlease specify encoding in options.txt'.format(encoding))
-    except Exception as e:
+    except Exception:
         logging.error('Something happened while copying from clipboard:\n', exc_info=True)
     return data
 
@@ -127,8 +125,16 @@ def paste(data):
     return data
 
 
+def clean_clipboard():
+    try:
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.CloseClipboard()
+    except Exception:
+        logging.error('Something happened while resetting clipboard:\n', exc_info=True)
+
+
 if __name__ == '__main__':
     data = copy()
     print(data)
     print(paste(data))
-
