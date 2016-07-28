@@ -2,7 +2,7 @@ import logging
 import keyboard
 from time import sleep
 
-from switcher import copy, paste, options, messages
+from switcher import copy, paste, options, messages, clean_clipboard
 
 logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
                     level=logging.DEBUG)
@@ -24,6 +24,7 @@ def main():
     if comb: keyboard.send(comb)
     keyboard.send('ctrl+v')
     sleep(0.25)
+    clean_clipboard()
     return
 
 

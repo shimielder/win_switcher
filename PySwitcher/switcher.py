@@ -57,7 +57,7 @@ def lang_define(char, layouts):
 
 
 def switcher(phrase):
-#    cross_list = cross_chars(layouts)
+    #    cross_list = cross_chars(layouts)
     escape = (' ', '\\')
     lang_setup = ()
     phrase_length = len(phrase)
@@ -87,6 +87,7 @@ def switcher(phrase):
                     result += char
             temp = ''
     return result
+
 
 messages = []
 options = get_options()
@@ -127,8 +128,16 @@ def paste(data):
     return data
 
 
+def clean_clipboard():
+    try:
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.CloseClipboard()
+    except Exception:
+        logging.error('Something happened while resetting clipboard:\n', exc_info=True)
+
+
 if __name__ == '__main__':
     data = copy()
     print(data)
     print(paste(data))
-
