@@ -1,7 +1,7 @@
 from tkinter import *
 import logging
 from keys_registrator import start_app, stop_app, options, messages
-from initialization import save_to
+from initialization import save_to, set_loglevel
 
 running = False
 
@@ -42,7 +42,7 @@ class TextHandler(
         # This is necessary because we can't modify the Text from other threads
         self.text.after(0, append)
 
-    def set_loglevel(self, loglevel):
+    def set_logginglevel(self, loglevel):
         if not loglevel:
             logging.error('Improper log_level. Check settings. Log_level set to "DEBUG"')
             numeric_level = 0
@@ -59,7 +59,7 @@ class TextHandler(
 text_handler = TextHandler(textbox)
 # Add the handler to logger
 logger = logging.getLogger()
-text_handler.set_loglevel(options['log_level'])
+text_handler.set_logginglevel(options['log_level'])
 logger.addHandler(text_handler)
 
 
@@ -131,7 +131,8 @@ def reload_opt():
     if debug.get():
         new_log_level = log_entry.get()
         if new_log_level: options['log_level'] = new_log_level
-    text_handler.set_loglevel(options['log_level'])
+    set_loglevel(options['log_level'])
+    text_handler.set_logginglevel(options['log_level'])
     save_to(options)
     if debug.get():
         debugpanelshow()

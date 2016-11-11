@@ -144,7 +144,7 @@ def set_loglevel(loglevel):
     if not isinstance(numeric_level, int):
         logging.error('Improper log_level. Check settings. Log_level set to "DEBUG"')
         numeric_level = 10
-    logging.debug('Numeric log_level: {}'.format(numeric_level))
+    # logging.debug('Numeric log_level: {}'.format(numeric_level))
     return logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
                                level=numeric_level)
 

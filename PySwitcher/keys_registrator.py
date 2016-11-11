@@ -19,10 +19,10 @@ def main():
         return
     logging.debug('String to convert:\t{}'.format(data))
     result = paste(data)
-    sleep(0.05)
+    # sleep(0.05)
     logging.debug('Converted string:\t{}'.format(result))
     if comb: layout_switch(comb)
-    sleep(0.25)
+    sleep(0.05)
     keyboard.send('ctrl+v')
     sleep(0.05)
     clean_clipboard()
@@ -39,7 +39,6 @@ def start_app():
     global running
     logging.info('App is running...')
     keyboard.add_hotkey(options['hotkey'], main)
-    logging.debug('Existing hotkeys: {}'.format(keyboard.hotkeys))
     running = True
 
 
@@ -47,7 +46,7 @@ def stop_app():
     global running
     logging.info('App stopped...')
     running = False
-    keyboard.remove_hotkey(options['hotkey'])
+    keyboard.clear_all_hotkeys()
 
 
 if __name__ == "__main__":
