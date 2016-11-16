@@ -8,31 +8,11 @@ from initialization import get_options, set_loglevel
 # TODO: вынести отдельным модулем загрузку языков
 
 
-def load_langs(langs, path=os.getcwd()):  # загружаем языки из файла
-    layouts = []
-    path += '\\lang\\'
-    langs = langs.split(',')
-    try:
-        files = os.listdir(path)
-    except FileNotFoundError:
-        os.mkdir(path)
-        logging.critical('Language dictionaries doesn\'t found. Please, place them in /lang directory')
-        messages.append('Language dictionaries doesn\'t found. Please, place them in /lang directory')
-        return layouts
-    lang_list = []
-    for lfile in files:
-        if lfile.endswith('.txt'):
-            lang_list.append(lfile.split('.')[0])
-    if langs[0] in lang_list:
-        data_file = open('{}/{}.txt'.format(path, langs[0]))
-        layouts.append(data_file.readline().replace('\n', ''))
-        data_file.close()
-    if langs[1] in lang_list:
-        data_file = open('{}/{}.txt'.format(path, langs[1]))
-        layouts.append(data_file.readline().replace('\n', ''))
-        data_file.close()
-    if not layouts:
-        logging.error('Language dictionaries doesn\'t found')
+def load_langs(layouts):  # загружаем языки из файла
+    if not layouts[0] or not layouts[1]:
+        logging.error('Dictionaries is empty.')
+    elif len(layouts[0]) != len(layouts[1]):
+        logging.error('Dictionaries lengths is not equal')
     return layouts
 
 
@@ -86,10 +66,10 @@ def switcher(phrase):
     return result
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 messages = []
 options = get_options()
-layouts = load_langs(options['langs'])
+layouts = load_langs(options['layouts'])
 if layouts:
     cross_list = cross_chars(layouts)
 encoding = options['encoding']
@@ -108,7 +88,7 @@ def copy():
             try:
                 data = data.decode(encoding)
             except UnicodeDecodeError:
-                logging.error('Problem with encoding: {}.\tPlease specify encoding in options.txt'.format(encoding))
+                logging.error('Problem with encoding: {}.'.format(encoding))
     except Exception:
         logging.error('Something happened while copying from clipboard:\n', exc_info=True)
     return data

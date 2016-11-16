@@ -2,25 +2,30 @@ from win32api import GetKeyboardLayout
 from win32gui import GetForegroundWindow
 from ctypes import windll
 from os import getcwd
+from os.path import expanduser
+from sys import getdefaultencoding
 from time import sleep
+import json
 import logging
 
 import keyboard
 
 logging.basicConfig(format='%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s',
                     level=logging.DEBUG)
+HOME = expanduser("~")
 
 
 def get_options():
     options = {
         'hotkey': 'pause',
-        'langs': 'ru,en',
         'log_level': 'DEBUG',
-        'encoding': 'cp1251',
-        'switch_combination': combination_definition()
+        'encoding': getdefaultencoding(),
+        'switch_combination': combination_definition(),
+        'layouts': ['ё1234567890-=йцукенгшщзхъфывапролджэячсмитьбю.Ё!"№;%:?*()_+ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,',
+                    '`1234567890-=qwertyuiop[]asdfghjkl;\'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?'],
     }
-    valid_loglevels = ('NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
-    loaded_options = load_from()
+    valid_loglevels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
+    loaded_options = load_from(HOME)
     if 'switch_combination' in loaded_options:
         comb = options['switch_combination']
         if not comb_check(comb):
@@ -33,38 +38,25 @@ def get_options():
     return options
 
 
-def load_from(path=getcwd()):
+def load_from(path=HOME):
     logging.info('Loading options from file...')
     options = {}
     try:
-        opt_file = open('{}\\options.txt'.format(path), 'r')
-        data = opt_file.readlines()
-        opt_file.close()
-        if not data:
+        with open(path + '\\pyswitcher.json', 'r') as f:
+            options = json.load(f)
+        if not options:
             logging.error('Options file is empty...')
             return generate_default()
-        for item in data:
-            key = item.split('=')[0]
-            value = item.split('=')[1].replace('\n', '')
-            if value == 'empty':
-                value = None
-            options[key] = value
         return options
     except FileNotFoundError:
         logging.error('Options file not found...')
         return generate_default()
 
 
-def save_to(options, path=getcwd()):
+def save_to(options, path=HOME):
     logging.info('Saving options to file...')
-    opt_file = open('{}\\options.txt'.format(path), 'w')
-    for opt in options:
-        key = opt
-        value = options[opt]
-        if not value:
-            value = 'empty'  # Необходимо, чтобы можно было потом записать в файл настройки
-        opt_file.write(key + '=' + value + '\n')
-    opt_file.close()
+    with open(path + '\\pyswitcher.json', 'w') as f:
+        json.dump(options, f)
 
 
 def comb_check(comb):
@@ -93,10 +85,10 @@ def generate_default():
     logging.info('Generating default options...')
     options = {
         'hotkey': 'pause',
-        'langs': 'ru,en',
         'log_level': 'DEBUG',
-        'encoding': 'cp1251',
-        'switch_combination': combination_definition()
+        'encoding': getdefaultencoding(),
+        'switch_combination': combination_definition(),
+        'layouts': []
     }
     return options
 
